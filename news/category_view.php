@@ -40,7 +40,7 @@ if(mysqli_num_rows($result) > 0)
     echo '<div align="center">We have ' . $myPager->showTotal() . ' ' . $itemz . '!</div>';
 	while($row = mysqli_fetch_assoc($result))
 	{# process each row
-         echo '<div align="center"><a href="' . VIRTUAL_PATH . 'news/news_feed.php?id=' . (int)$row['FeedID'] . '">' . dbOut($row['FeedTitle']) . '
+         echo '<div align="center"><a href="' . VIRTUAL_PATH . 'news/feed_view.php?id=' . (int)$row['FeedID'] . '">' . dbOut($row['FeedTitle']) . '
 				  </a>';
          echo '</div>';
 	}
