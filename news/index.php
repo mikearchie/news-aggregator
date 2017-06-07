@@ -7,7 +7,7 @@ require '../inc_0700/config_inc.php'; #provides configuration, pathing, error ha
 //$sql = "select MuffinName, MuffinID, Price from test_Muffins";
 //$sql = "select SurveyID,Title,Description,DateAdded,LastUpdated from sp17_surveys";
 //$sql = "select *  FROM sp17_surveys , sp17_Admin ";
-$sql = "select * FROM sp17_Categories";
+$sql = "select * FROM sp17_NewsCategories";
 
 #Fills <title> tag. If left empty will default to $PageTitle in config_inc.php
 $config->titleTag = 'News RSS';
@@ -36,11 +36,11 @@ $result = mysqli_query(IDB::conn(),$sql) or die(trigger_error(mysqli_error(IDB::
 
 if(mysqli_num_rows($result) > 0)
 {#records exist - process
-	if($myPager->showTotal()==1){$itemz = "new";}else{$itemz = "news";}  //deal with plural
-    echo '<div align="center">We have ' . $myPager->showTotal() . ' ' . $itemz . '!</div>';
+	if($myPager->showTotal()==1){$itemz = "category";}else{$itemz = "categories";}  //deal with plural
+    echo '<div align="center">We have ' . $myPager->showTotal() . ' news ' . $itemz . '!</div>';
 	while($row = mysqli_fetch_assoc($result))
 	{# process each row
-         echo '<div align="center"><a href="' . VIRTUAL_PATH . 'news/New_Categories.php?id=' . (int)$row['CategoriesID'] . '">' . dbOut($row['Categories']) . '
+         echo '<div align="center"><a href="' . VIRTUAL_PATH . 'news/news_category.php?id=' . (int)$row['CategoryID'] . '">' . dbOut($row['Category']) . '
 				  </a>';
 				// echo '<div align="center"><a href="' . VIRTUAL_PATH . 'surveys/survey_view.php?id=' . (int)$row['AdminID'] . '">' . dbOut($row['FirstName']) . ' ' . dbOut($row['LastName']) . ' </a>';
 
@@ -48,7 +48,7 @@ if(mysqli_num_rows($result) > 0)
 	}
 	echo $myPager->showNAV(); # show paging nav, only if enough records
 }else{#no records
-    echo "<div align=center>There are currently no News</div>";
+    echo "<div align=center>There are currently no news categories available.</div>";
 }
 @mysqli_free_result($result);
 
