@@ -27,7 +27,6 @@ get_header(); #defaults to theme header or header_inc.php
 <h3 align="center"><?=smartTitle();?></h3>
 
 <?php
-
 #reference images for pager
 $prev = '<img src="' . VIRTUAL_PATH . 'images/arrow_prev.gif" border="0" />';
 $next = '<img src="' . VIRTUAL_PATH . 'images/arrow_next.gif" border="0" />';
@@ -54,4 +53,3 @@ if (mysqli_num_rows($result) > 0) { // if records exist
 
 @mysqli_free_result($result);
 get_footer(); #defaults to theme footer or footer_inc.php
-?>
