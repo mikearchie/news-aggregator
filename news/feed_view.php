@@ -3,15 +3,42 @@
 require '../inc_0700/config_inc.php'; //provides configuration, pathing, error handling, db credentials
 
 // check variable of item passed in - if invalid data, forcibly redirect back to survey-list.php page
+
+echo '<br>';
 if (isset($_GET['id']) && (int)$_GET['id'] > 0) { // proper data must be on querystring
 	 $myID = (int)$_GET['id']; // Convert to integer, will equate to zero if fails
 } else {
 	header('Location:category_view.php');
 }
 
-$myNews = new News($myID);
+//this is the code for caching. Need to work on it some more!
+if(!isset($_SESSION)) {
+    session_start();
+}
+//1) check if session exists, if not, start new
+if(!isset($_SESSION['NewsFeeds'])) {
+    // if session var does not exists, create it.
+    $_SESSION['NewsFeeds'] = array();
+} else {
+    //check cache for unexpired current newsfeed id
+    foreach ($_SESSION["NewsFeeds"] as $feedObject) {
+        if ($feedObject->feedID == $myID && time() < $feedObject->expireTime) {
+            //if feed is in cache and hasn't expired yet, use it
+            $myNews = $feedObject;
+            echo '<h3>Using cached feed</h3>';
+            break;
+        }
+    }
+}
 
-$sql = "select * FROM ".PREFIX."NewsFeeds";
+//create new feed object if it wasn't pulled from cache
+if (!isset($myNews)) {
+    echo '<h3>Creating new feed</h3>';
+    $myNews = new News($myID);
+    //add new feed to cache
+    $_SESSION['NewsFeeds'][] = $myNews;
+}
+
 $config->titleTag = 'News RSS';
 // END CONFIG AREA ----------------------------------------------------------
 get_header(); // defaults to theme header or header_inc.php
@@ -21,15 +48,8 @@ get_header(); // defaults to theme header or header_inc.php
 
 <?php
 if ($myNews->isValid) {
-	$response = file_get_contents($myNews->request);
-	$xml = simplexml_load_string($response);
-	echo '<h2>' . ucwords($xml->channel->title) . '</h2>';
-	foreach ($xml->channel->item as $story) {
-		echo '<section>';
-		echo '<a href="' . $story->link . '">' . $story->title . '</a>'; 
-		echo $story->description;
-		echo '</section>';
-	}
+	//echo '<h2>' . ucwords($myNews->xml->channel->title) . '</h2>';
+    echo $myNews->feedContent;
 	echo '<a href="'.htmlspecialchars($_SERVER['HTTP_REFERER']).'">Go Back</a>';
 } else {//no records
     echo "<div align=center>There are currently no News</div>";
@@ -40,22 +60,42 @@ get_footer(); // defaults to theme footer or footer_inc.php
 class News
 {
 	public $feedID = 0;
-	public $request = '';
 	public $isValid = false;
-	
+    public $expireTime;
+    public $feedContent;
+
 	public function __construct($feedID)
 	{
-		$this->feedID = $feedID;	
+		$this->feedID = $feedID;
 		$sql = "select FeedID, URL from ".PREFIX."NewsFeeds where FeedID = ".$this->feedID;
 		$result = mysqli_query(IDB::conn(), $sql) or die(trigger_error(mysqli_error(IDB::conn()), E_USER_ERROR));
-		
+        //$this->descriptions = array();
+        //echo $this->descriptions;
+        $this->expireTime = strtotime("+10 minutes");
+
 		if (mysqli_num_rows($result) > 0) { // if records exist
-			while ($row = mysqli_fetch_assoc($result)) {
-				$this->isValid = true;
-				$this->request = dbOut($row['URL']);
-			}
+		 	while ($row = mysqli_fetch_assoc($result)) {
+		 		$this->isValid = true;
+		 		$this->request = dbOut($row['URL']);
+                $this->response = file_get_contents($this->request);
+                $xml = simplexml_load_string($this->response);
+                foreach ($xml->channel->item as $story) {
+                    $this->feedContent .= '<section>' . $story->description . '</section>';
+                }
+		 	}
 		}
-		
 		@mysqli_free_result($result); // done with the data
 	}
+
+    // function showFeed()
+    // {
+    //     $myReturn = '';
+    //     var_dump($this->descriptions);
+    //     foreach ($this->descriptions as $description) {
+    //         $myReturn .= '<section>' . $description . '</section>';
+    //     }
+    //     return $myReturn;
+    // }
 }
+
+?>
