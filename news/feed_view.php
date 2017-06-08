@@ -1,52 +1,59 @@
 <?php
-
 # '../' works for a sub-folder.  use './' for the root
 require '../inc_0700/config_inc.php'; #provides configuration, pathing, error handling, db credentials
 
-$sql = "select * FROM sp17_NewsFeeds";
+// check variable of item passed in - if invalid data, forcibly redirect back to survey-list.php page
+if (isset($_GET['id']) && (int)$_GET['id'] > 0) { // proper data must be on querystring
+	 $myID = (int)$_GET['id']; // Convert to integer, will equate to zero if fails
+} else {
+//	myRedirect(VIRTUAL_PATH . "surveys/survey-list.php");
+	header('Location:category_view.php');
+}
 
+$myNews = new News($myID);
+
+$sql = "select * FROM ".PREFIX."NewsFeeds";
 $config->titleTag = 'News RSS';
-
 # END CONFIG AREA ----------------------------------------------------------
-
 get_header(); #defaults to theme header or header_inc.php
 ?>
 <h3 align="center"><?=smartTitle();?></h3>
 
 <?php
-#reference images for pager
-$prev = '<img src="' . VIRTUAL_PATH . 'images/arrow_prev.gif" border="0" />';
-$next = '<img src="' . VIRTUAL_PATH . 'images/arrow_next.gif" border="0" />';
-
-# Create instance of new 'pager' class
-$myPager = new Pager(10,'',$prev,$next,'');
-$sql = $myPager->loadSQL($sql);  #load SQL, add offset
-
-# connection comes first in mysqli (improved) function
-$result = mysqli_query(IDB::conn(),$sql) or die(trigger_error(mysqli_error(IDB::conn()), E_USER_ERROR));
-
-if(mysqli_num_rows($result) > 0)
-{#records exist - process
-	if($myPager->showTotal()==1){$itemz = "new";}else{$itemz = "news";}  //deal with plural
-    echo '<div align="center">We have ' . $myPager->showTotal() . ' ' . $itemz . '!</div>';
-	while($row = mysqli_fetch_assoc($result))
-	{# process each row
-         echo '<div align="center"><a href="' . VIRTUAL_PATH . 'news/NBA.php?"></a>';
-				 echo '<div align="center"><a href="' . VIRTUAL_PATH . 'news/NFL.php?"></a>';
-
-          // echo '<div align="center"><a href="' . VIRTUAL_PATH . 'news/entertainment.php?id=' . (int)$row['FeedID'] . '">' . dbOut($row['Feed ']) . '
- 				 //  </a>';
-          // echo '<div align="center"><a href="' . VIRTUAL_PATH . 'news/world.php?id=' . (int)$row['FeedID'] . '">' . dbOut($row['Feed ']) . '
- 				 //  </a>';
-				// echo '<div align="center"><a href="' . VIRTUAL_PATH . 'surveys/survey_view.php?id=' . (int)$row['AdminID'] . '">' . dbOut($row['FirstName']) . ' ' . dbOut($row['LastName']) . ' </a>';
-
-         echo '</div>';
+if ($myNews->isValid) {
+	$response = file_get_contents($myNews->request);
+	$xml = simplexml_load_string($response);
+	echo '<h2>' . $xml->channel->title . '</h2>';
+	foreach ($xml->channel->item as $story) {
+		echo '<a href="' . $story->link . '">' . $story->title . '</a><br />'; 
+		echo '<p>' . $story->description . '</p><br /><br />';
 	}
-	echo $myPager->showNAV(); # show paging nav, only if enough records
-}else{#no records
+} else {#no records
     echo "<div align=center>There are currently no News</div>";
 }
-@mysqli_free_result($result);
 
 get_footer(); #defaults to theme footer or footer_inc.php
-?>
+
+
+class News
+{
+	public $feedID = 0;
+	public $request = '';
+	public $isValid = false;
+	
+	public function __construct($feedID)
+	{
+		$this->feedID = $feedID;	
+		$sql = "select FeedID, URL from ".PREFIX."NewsFeeds where FeedID = ".$this->feedID;
+		$result = mysqli_query(IDB::conn(), $sql) or die(trigger_error(mysqli_error(IDB::conn()), E_USER_ERROR));
+		
+		if (mysqli_num_rows($result) > 0) { // if records exist
+			while ($row = mysqli_fetch_assoc($result)) {
+				$this->isValid = true;
+				$this->request = dbOut($row['URL']);
+			}
+		}
+		
+		@mysqli_free_result($result); // done with the data
+	}
+}
