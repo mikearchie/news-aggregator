@@ -42,7 +42,7 @@ if (mysqli_num_rows($result) > 0) { // if records exist
 	if ($myPager->showTotal()==1){$itemz = "feed";}else{$itemz = "feeds";}  //deal with plural
 	while($row = mysqli_fetch_assoc($result)) {# process each row
 		if ((int)$row['CategoryID'] == $myID) {
-			 echo '<div align="center"><a href="' . VIRTUAL_PATH . 'news/category_view.php?id=' . (int)$row['FeedID'] . '">' . dbOut($row['FeedTitle']) . '</a>';
+			 echo '<div align="center"><a href="' . VIRTUAL_PATH . 'news/feed_view.php?id=' . (int)$row['FeedID'] . '">' . dbOut($row['FeedTitle']) . '</a>';
 			 echo '</div>';
 		}
 	}
