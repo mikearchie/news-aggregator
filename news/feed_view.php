@@ -4,7 +4,6 @@ require '../inc_0700/config_inc.php'; //provides configuration, pathing, error h
 
 // check variable of item passed in - if invalid data, forcibly redirect back to survey-list.php page
 
-echo '<br>';
 if (isset($_GET['id']) && (int)$_GET['id'] > 0) { // proper data must be on querystring
 	 $myID = (int)$_GET['id']; // Convert to integer, will equate to zero if fails
 } else {
@@ -34,9 +33,16 @@ if(!isset($_SESSION['NewsFeeds'])) {
 //create new feed object if it wasn't pulled from cache
 if (!isset($myNews)) {
     echo '<h3>Creating new feed</h3>';
-    $myNews = new News($myID);
+    try {
+        $myNews = new News($myID);
+    } catch (Exception $e) {
+        echo 'Unable to retrieve feed. ' + $e->getMessage();
+    }
     //add new feed to cache
-    $_SESSION['NewsFeeds'][] = $myNews;
+    if ($myNews->isValid) {
+        echo '<h3>Adding feed to session array</h3>';
+        $_SESSION['NewsFeeds'][] = $myNews;
+    }
 }
 
 $config->titleTag = 'News RSS';
@@ -50,9 +56,10 @@ get_header(); // defaults to theme header or header_inc.php
 if ($myNews->isValid) {
 	//echo '<h2>' . ucwords($myNews->xml->channel->title) . '</h2>';
     echo $myNews->feedContent;
-	echo '<a href="'.htmlspecialchars($_SERVER['HTTP_REFERER']).'">Go Back</a>';
+    if (isset($_SERVER['HTTP_REFERER']))
+	   echo '<a href="'.htmlspecialchars($_SERVER['HTTP_REFERER']).'">Go Back</a>';
 } else {//no records
-    echo "<div align=center>There are currently no News</div>";
+    echo "<div align=center>There are currently no News feeds available.</div>";
 }
 
 get_footer(); // defaults to theme footer or footer_inc.php
@@ -75,14 +82,19 @@ class News
 
 		if (mysqli_num_rows($result) > 0) { // if records exist
 		 	while ($row = mysqli_fetch_assoc($result)) {
-		 		$this->isValid = true;
 		 		$this->request = dbOut($row['URL']);
-                $this->response = file_get_contents($this->request);
-                $xml = simplexml_load_string($this->response);
-                foreach ($xml->channel->item as $story) {
-                    $this->feedContent .= '<section>' . $story->description . '</section>';
+                try {
+                    $this->response = file_get_contents($this->request);
+                    $xml = simplexml_load_string($this->response);
+                    foreach ($xml->channel->item as $story) {
+                        $this->feedContent .= '<section>' . $story->description . '</section>';
+                    }
+                } catch (\Exception $e) {
+                    $this->feedContent .= '<section>RSS feed unavailable</section>';
                 }
 		 	}
+            if (isset($this->xml))
+                $this->isValid = true;
 		}
 		@mysqli_free_result($result); // done with the data
 	}
