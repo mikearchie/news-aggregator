@@ -1,6 +1,6 @@
 <?php
 /**
- * news_add.php is a single page web application that allows us to add a new customer to
+ * Category_add.php is a single page web application that allows us to add a new customer to
  * an existing table
  *
  * This page is based on demo_edit.php
@@ -73,6 +73,7 @@ function showCategories()
 				<th>Description</th>
 			</tr>
 			';
+
 		while ($row = mysqli_fetch_assoc($result))
 		{//dbOut() function is a 'wrapper' designed to strip slashes, etc. of data leaving db
 			echo '<tr>
@@ -89,6 +90,8 @@ function showCategories()
 	}
 	echo '<div align="center"><a href="' . THIS_PAGE . '?act=add">ADD Category</a></div>';
 	@mysqli_free_result($result); //free resources
+	echo '<a href="'.htmlspecialchars($_SERVER['HTTP_REFERER']).'">Go Back</a>';
+
 	get_footer();
 }
 
@@ -133,6 +136,8 @@ function addForm()
 	</form>
 	<div align="center"><a href="' . THIS_PAGE . '">Exit Without Add</a></div>
 	';
+
+
 	get_footer();
 
 }

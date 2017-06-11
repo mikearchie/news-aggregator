@@ -1,6 +1,6 @@
 <?php
 /**
- * news_add.php is a single page web application that allows us to add a new customer to
+ * Feed_add.php is a single page web application that allows us to add a new customer to
  * an existing table
  *
  * This page is based on demo_edit.php
@@ -95,6 +95,9 @@ function showFeed()
 	}
 	echo '<div align="center"><a href="' . THIS_PAGE . '?act=add">ADD Feed</a></div>';
 	@mysqli_free_result($result); //free resources
+
+	echo '<a href="'.htmlspecialchars($_SERVER['HTTP_REFERER']).'">Go Back</a>';
+
 	get_footer();
 }
 
@@ -183,7 +186,7 @@ function insertExecute()
 	// }
 
     //build string for SQL insert with replacement vars, %s for string, %d for digits
-    $sql = "INSERT INTO sp17_NewsFeeds (FeedTitle,CategoryID, Description, URL) VALUES ('%s','%s','%s','%s' )";
+    $sql = "INSERT INTO sp17_NewsFeeds (FeedTitle,CategoryID, Description, URL) VALUES ('%s','%d', '%s','%s' )";
 
     # sprintf() allows us to filter (parameterize) form data
 	$sql = sprintf($sql,$FeedTitle,$CategoryID, $Description, $URL);
