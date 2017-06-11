@@ -24,7 +24,7 @@ if(!isset($_SESSION['NewsFeeds'])) {
         if ($feedObject->feedID == $myID && time() < $feedObject->expireTime) {
             //if feed is in cache and hasn't expired yet, use it
             $myNews = $feedObject;
-            echo '<h3>Using cached feed</h3>';
+            $config->titleTag = $myNews->feedTitle . ' (from cache)';
             break;
         }
     }
@@ -32,7 +32,6 @@ if(!isset($_SESSION['NewsFeeds'])) {
 
 //create new feed object if it wasn't pulled from cache
 if (!isset($myNews)) {
-    echo '<h3>Creating new feed</h3>';
     try {
         $myNews = new News($myID);
     } catch (Exception $e) {
@@ -40,17 +39,18 @@ if (!isset($myNews)) {
     }
     //add new feed to cache
     if ($myNews->isValid) {
-        echo '<h3>Adding feed to session array</h3>';
         $_SESSION['NewsFeeds'][] = $myNews;
+        $config->titleTag = $myNews->feedTitle;
+
     }
 }
 
-$config->titleTag = 'News RSS';
+
 // END CONFIG AREA ----------------------------------------------------------
 get_header(); // defaults to theme header or header_inc.php
 ?>
 
-<h3 align="center"><?=smartTitle();?></h3>
+<h3 align="center"><?=$config->titleTag;?></h3>
 
 <?php
 if ($myNews->isValid) {
@@ -67,37 +67,34 @@ get_footer(); // defaults to theme footer or footer_inc.php
 class News
 {
 	public $feedID = 0;
+    public $feedTitle = '';
 	public $isValid = false;
     public $expireTime;
-    public $feedContent;
+    public $feedContent = '';
 
 	public function __construct($feedID)
 	{
 		$this->feedID = $feedID;
-		$sql = "select FeedID, URL from ".PREFIX."NewsFeeds where FeedID = ".$this->feedID;
+		$sql = "select FeedID, FeedTitle, URL from ".PREFIX."NewsFeeds where FeedID = ".$this->feedID;
 		$result = mysqli_query(IDB::conn(), $sql) or die(trigger_error(mysqli_error(IDB::conn()), E_USER_ERROR));
-        //$this->descriptions = array();
-        //echo $this->descriptions;
+
         $this->expireTime = strtotime("+10 minutes");
 
 		if (mysqli_num_rows($result) > 0) { // if records exist
 		 	while ($row = mysqli_fetch_assoc($result)) {
-		 		$this->request = dbOut($row['URL']);
-                try {
-                    $this->response = file_get_contents($this->request);
-                    $xml = simplexml_load_string($this->response);
-                    foreach ($xml->channel->item as $story) {
-                        $this->feedContent .= '<section>' . $story->description . '</section>';
-                    }
-                } catch (\Exception $e) {
-                    $this->feedContent .= '<section>RSS feed unavailable</section>';
-                }
-		 	}
-            if (isset($this->xml))
-                $this->isValid = true;
-		}
+                $this->feedTitle = dbOut($row['FeedTitle']);
+                $this->request = dbOut($row['URL']);
+                $this->response = file_get_contents($this->request);
+                $xml = simplexml_load_string($this->response);
+                foreach ($xml->channel->item as $story) {
+                    $this->feedContent .= '<section>' . $story->description . '</section>';
+    		 	}
+                if ($this->feedContent != '')
+                    $this->isValid = true;
+	        }
 		@mysqli_free_result($result); // done with the data
-	}
+        }
+    }
 
     // function showFeed()
     // {
