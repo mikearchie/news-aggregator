@@ -28,7 +28,7 @@ CREATE TABLE `sp17_NewsFeeds` (
   PRIMARY KEY (`FeedID`),
   INDEX catID (`CategoryID`),
   FOREIGN KEY (`CategoryID`)
-        REFERENCES NewsCategories(`CategoryID`)
+        REFERENCES sp17_NewsCategories(`CategoryID`)
 
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
