@@ -51,7 +51,7 @@ if (mysqli_num_rows($result) > 0) { // records exist - process
 	} else {
 		$itemz = "feeds";
 	} // deal with plural
-	
+
     echo '<div align="center">We have ' . $myPager->showTotal() . ' news ' . $itemz . '!</div>';
 	echo '<tbody>';
 	while($row = mysqli_fetch_assoc($result)) { // process each row
@@ -69,10 +69,13 @@ if (mysqli_num_rows($result) > 0) { // records exist - process
 	</div>';
 
 	echo $myPager->showNAV(); // show paging nav, only if enough records
-	echo '<a href="index.php">Go Back</a>';
+
 } else { // no records
-    echo "<div align=center>There are currently no news.</div>";	
+    echo "<div align=center>There are currently no news.</div>";
 }
+
+echo '<a href="feed_add.php">Add new Feeds</a><br>';
+echo '<a href="index.php">Go Back</a><br>';
 
 @mysqli_free_result($result);
 get_footer(); // defaults to theme footer or footer_inc.php
