@@ -25,6 +25,7 @@
 
 # '../' works for a sub-folder.  use './' for the root
 require '../inc_0700/config_inc.php'; #provides configuration, pathing, error handling, db credentials
+require_once INCLUDE_PATH . 'admin_only_inc.php';
 
 /*
 $config->metaDescription = 'Web Database ITC281 class website.'; #Fills <meta> tags.
