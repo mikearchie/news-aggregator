@@ -33,7 +33,7 @@ if(!isset($_SESSION['NewsFeeds'])) {
 //create new feed object if it wasn't pulled from cache
 if (!isset($myNews)) {
     try {
-        $myNews = new News($myID);
+        $myNews = new Feed($myID);
     } catch (Exception $e) {
         echo 'Unable to retrieve feed. ' + $e->getMessage();
     }
@@ -64,7 +64,7 @@ if ($myNews->isValid) {
 
 get_footer(); // defaults to theme footer or footer_inc.php
 
-class News
+class Feed
 {
 	public $feedID = 0;
     public $feedTitle = '';
@@ -95,16 +95,5 @@ class News
 		@mysqli_free_result($result); // done with the data
         }
     }
-
-    // function showFeed()
-    // {
-    //     $myReturn = '';
-    //     var_dump($this->descriptions);
-    //     foreach ($this->descriptions as $description) {
-    //         $myReturn .= '<section>' . $description . '</section>';
-    //     }
-    //     return $myReturn;
-    // }
 }
-
 ?>
