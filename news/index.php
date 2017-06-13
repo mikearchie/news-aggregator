@@ -62,7 +62,15 @@ if (mysqli_num_rows($result) > 0) { // records exist - process
 
 @mysqli_free_result($result);
 
-echo '<a href="category_add.php">Add new Categories</a>';
+		?>
+<?php
+
+	    if(startSession() && isset($_SESSION["AdminID"]))
+	        {# only admins can see 'peek a boo' link:
+	             echo '<p align="center"><a href="' . VIRTUAL_PATH . 'news/Category_add.php?' . $_SERVER['QUERY_STRING'] . '">Add new Category</a></p>';
+
+	        }
 
 
+	?>
 get_footer(); // defaults to theme footer or footer_inc.php
