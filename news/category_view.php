@@ -74,18 +74,10 @@ if (mysqli_num_rows($result) > 0) { // records exist - process
     echo "<div align=center>There are currently no news.</div>";
 }
 echo '<a href="index.php">Go Back</a><br>';
-<?php
 
-	    if(startSession() && isset($_SESSION["AdminID"]))
-	        {# only admins can see 'peek a boo' link:
-	             echo '<p align="center"><a href="' . VIRTUAL_PATH . 'news/Feed_add.php?' . $_SERVER['QUERY_STRING'] . '">Add new Feed</a></p>';
+if(startSession() && isset($_SESSION["AdminID"])) {# only admins can see 'peek a boo' link:
+    echo '<p align="center"><a href="' . VIRTUAL_PATH . 'news/feed_add.php?' . $_SERVER['QUERY_STRING'] . '">Add new Feed</a></p>';
+}
 
-	        }
-
-
-	?>
-<?php
-
-		
 @mysqli_free_result($result);
 get_footer(); // defaults to theme footer or footer_inc.php
